@@ -9,6 +9,7 @@ use File::Basename;
 use Cwd;
 use POSIX;
 
+#my $FASTA = $ARGV[0];
 my $FASTA="/home/mwyler/GenotapeClassifier/testNEWseq.fa";
 # getwd
 my $dir = getcwd . "/";
@@ -66,14 +67,12 @@ foreach (@NRsegments){
         print FH "$SEQNAME\n$sequenza\n";
 	close(FH);
 	# attach sequence to alignment
-	system "muscle -profile -in1 $ALN -in2 $SEQfile -out $TEMPfolder/combined${NUMERO}_comb.aln";
-
-
+	system "muscle -quiet -profile -in1 $ALN -in2 $SEQfile -out $TEMPfolder/combined${NUMERO}_comb.aln";
 }
 
 
 # make a new tree
-system "ls $TEMPfolder/combined*_comb.aln | parallel -j8 'fasttree -nt {} > {.}.tree' ";
+system "ls $TEMPfolder/combined*_comb.aln | parallel -j8 'fasttree -quiet -nt {} > {.}.tree'  > /dev/null 2>&1 ";
 
 # calculate distance matrix
 system "ls $TEMPfolder/combined*.tree | parallel -j8 '~/Software/gotree matrix -i {} -o {.}.distMatrix' ";
@@ -81,7 +80,7 @@ system "ls $TEMPfolder/combined*.tree | parallel -j8 '~/Software/gotree matrix -
 ### CLASSIFICATION -------------------
 
 # run R script to get closest
-# compare numbr code to get genotype
+system "Rscript $SCRIPTS/subScript.R $SCRIPTS $TEMPfolder";
 
 system "rm -r uscita";
 system "cp -r $TEMPfolder uscita";
