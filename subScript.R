@@ -1,19 +1,24 @@
 # script to identify closest reference from distance matrix (gotree)
 
-library(data.table)
-library(tidyverse)
+suppressMessages(suppressWarnings(require(data.table)))
+suppressMessages(suppressWarnings(require(tidyverse)))
 
-FOLDER <- '//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita'
+args <- commandArgs(TRUE)
+# transposed matrix (marker as row)
+FOLDER <- args[2]
+folderScript <- args[1]
+
+#FOLDER <- '//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita'
 
 Files <- list.files(path= FOLDER, pattern='.distMatrix', all.files=FALSE, 
-           full.names=T)
+                    full.names=T)
 
 # make table for output
 output <- as.data.frame(matrix(nrow = 1, ncol = 11))
 colnames(output) <- c('ID', 'Subtipe', 'Genotype', 
                       'PB2', 'PB1', 'PA', 'HA', 'NP', 'NA', 'MP', 'NS')
 
-# run through files
+# run through distance matrix files
 for (MatriceName in Files){
   #MatriceName <- "//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita/combined1_comb.distMatrix"
   #MatriceName <- "//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita/combined4_comb.distMatrix"
@@ -47,21 +52,20 @@ output[,4:ncol(output)] <- apply(output[,4:ncol(output)], 1, function(x){gsub('N
 # Reference genotype -------------------------
 
 # load reference table
-folderScript <- dirname(rstudioapi::getSourceEditorContext()$path)
 referenza <- fread(paste0(folderScript, '/GenoTypeTable.csv'), 
                    data.table = F, header = T)
 colnames(referenza)[8] <- "NA"
 
 # check which combination is the sample
 refFilter <- referenza[referenza$PB2 == output$PB2 &
-            referenza$PB1 == output$PB1 &
-            referenza$PA == output$PA &
-            referenza$HA == output$HA &
-            referenza$NP == output$NP &
-            referenza$`NA` == output$`NA` &
-            referenza$MP == output$MP &
-            referenza$NS == output$NS, 
-          ]
+                         referenza$PB1 == output$PB1 &
+                         referenza$PA == output$PA &
+                         referenza$HA == output$HA &
+                         referenza$NP == output$NP &
+                         referenza$`NA` == output$`NA` &
+                         referenza$MP == output$MP &
+                         referenza$NS == output$NS, 
+]
 # print out
 if (nrow(refFilter) > 0){
   output[, 2:3] <- refFilter[, 1:2]
@@ -71,3 +75,4 @@ if (nrow(refFilter) > 0){
   fwrite(output[,], sep = "\t")
   stop("ERROR: Could not Identify adeguate reference.", call. = F)
 }
+
