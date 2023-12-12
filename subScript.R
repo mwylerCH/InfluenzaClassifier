@@ -8,7 +8,8 @@ args <- commandArgs(TRUE)
 FOLDER <- args[2]
 folderScript <- args[1]
 
-#FOLDER <- '//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita'
+# FOLDER <- '//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita'
+#folderScript <- '//wsl.localhost/Ubuntu-22.04/home/mwyler/GenotapeClassifier/'
 
 Files <- list.files(path= FOLDER, pattern='.distMatrix', all.files=FALSE, 
                     full.names=T)
@@ -21,35 +22,41 @@ colnames(output) <- c('ID', 'Subtipe', 'Genotype',
 # run through distance matrix files
 for (MatriceName in Files){
   #MatriceName <- "//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita/combined1_comb.distMatrix"
-  #MatriceName <- "//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita/combined4_comb.distMatrix"
   Matrice <- fread(MatriceName, data.table = F, header = F)
   
-  # keep only column of interest
+  # keep only column of interest (sample)
   colnames(Matrice) <- c('Seq', Matrice$V1)
-  Matrice <- Matrice[, !grepl('NrRef', colnames(Matrice))]
+  Matrice <- Matrice[, !grepl('ID[[:digit:]]+SEQ', colnames(Matrice))]
+  Matrice <- Matrice[, !grepl('REF[[:digit:]]+Nr', colnames(Matrice))]
   
-  # get new sequence name
+  # keep only Row of interest (references)
+  Matrice <- Matrice[grepl('REF[[:digit:]]+Nr', Matrice$Seq), ]
+  
+  
+  # get new sequence name (common name without segment information)
   dirtyName <- colnames(Matrice)[!grepl('Seq', colnames(Matrice))]
   dirtyName <- unlist(strsplit(dirtyName, '\\|'))
   output$ID[1] <- dirtyName[grepl('witzerland', dirtyName)]
   
-  # get Segment
+  # get Segment of the input
   segmenti <- c('PB2', 'PB1', 'PA', 'HA', 'NP', 'NA', 'MP', 'NS', 'MP')
-  Segment <- dirtyName[grepl(paste0(segmenti, collapse = '|'), dirtyName)]
+  Segment <- dirtyName[grepl(paste0('\\b', segmenti, '\\b', collapse = '|'), dirtyName)]
   
-  # get closest distance
+  
+  # get closest reference distance
   colnames(Matrice)[2] <- 'distance'
   closestRef <- Matrice[Matrice$distance > 0, ] %>% 
     slice_min(distance, n = 1) %>% 
     pull(Seq)
   
   # clean name Reference
-  output[1, Segment] <- gsub('.*\\|(NrRef[[:digit:]]+)\\|.*' ,'\\1', closestRef)
+  output[1, Segment] <- gsub('REF([[:digit:]]+)Nr' ,'\\1', closestRef)
 }
 
+output[1, 'HA'] <- 20
 output[,4:ncol(output)] <- apply(output[,4:ncol(output)], 1, function(x){gsub('NrRef', '', x)})
 
-# Reference genotype -------------------------
+# Reference genotype/subtype -------------------------
 
 # load reference table
 referenza <- fread(paste0(folderScript, '/GenoTypeTable.csv'), 
