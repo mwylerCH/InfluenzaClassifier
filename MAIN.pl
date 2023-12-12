@@ -1,5 +1,9 @@
 #!/usr/bin/perl
 
+## Script for AIV classification of a fasta file with 8 segments
+# Michele Wyler, IVI Mittelhäusern
+
+
 use warnings;
 use strict;
 use English;
@@ -9,8 +13,8 @@ use File::Basename;
 use Cwd;
 use POSIX;
 
-#my $FASTA = $ARGV[0];
-my $FASTA="/home/mwyler/GenotapeClassifier/testNEWseq.fa";
+#my $FASTA="/home/mwyler/GenotapeClassifier/testNEWseq.fa";
+my $FASTA = $ARGV[0];
 # getwd
 my $dir = getcwd . "/";
 # script folder
@@ -26,15 +30,17 @@ open(IN, $FASTA) or die "can't open $FASTA";
 my %seqs = ();
 my $header = '';
 
-#open(IN, $FASTA) or die "can't open $FASTA";
 while (my $line = <IN>){
     chomp $line;
-	$line =~ s/^\s*$//;
+        $line =~ s/^\s*$//;
     if ($line =~ m/^>(.*)$/){
         $header = $line;
        # Check if segments are annotated (as '|1|)
         if ($header !~ m/\|[[:digit:]]\|/){
-                print "How are each segment defined? Not line '|number|'.\n";
+                print "How are each segment defined? Not line '|number|'.\n\n";
+                exit;
+        } elsif ($header !~ m/witzerland/){
+                print "Make sure that the header contains 'Switzerland'.\n\n";
                 exit;
         }
     } else {
@@ -43,6 +49,13 @@ while (my $line = <IN>){
 }
 close (IN);
 
+# Requires 8 segments
+my $NRsegments = scalar keys %seqs;
+if ($NRsegments != 8){
+        print "ERROR: Input file needs 8 segments!\n\n";
+        exit;
+}
+
 
  ### ALIGNMENTS ----------------------
 
@@ -50,24 +63,26 @@ close (IN);
 system "cp $SCRIPTS/RefSegment_*.aln $TEMPfolder/";
 
 # loop over segments (pull out from hash and find alignment
-my @NRsegments = (1..8);
+#my @NRsegments = (1..8);
+my @NRsegments = (1..3, 5..8);
 foreach (@NRsegments){
         my $NUMERO = $_;
-	# name alignment file
+        # name alignment file
         my $ALN = "$TEMPfolder/RefSegment_" . $NUMERO . ".aln";
         # get right sequence out of hash
         my $SEQSTRING = "|" . $NUMERO . "|";
-	my @ALLsequences = keys %seqs;
-	my $SEQNAME ;
-	foreach (@ALLsequences) {if (index($_, $SEQSTRING) != -1) { $SEQNAME = $_}};
-	# print fasta segment
+        my @ALLsequences = keys %seqs;
+        my $SEQNAME ;
+        foreach (@ALLsequences) {if (index($_, $SEQSTRING) != -1) { $SEQNAME = $_}};
+        # print fasta segment
         my $SEQfile = $TEMPfolder . "/segment_" . $NUMERO . ".fa";
-	my $sequenza = $seqs{"$SEQNAME"};
-	open(FH, '>', $SEQfile) or die $!;
+        my $sequenza = $seqs{"$SEQNAME"};
+        open(FH, '>', $SEQfile) or die $!;
         print FH "$SEQNAME\n$sequenza\n";
-	close(FH);
-	# attach sequence to alignment
-	system "muscle -quiet -profile -in1 $ALN -in2 $SEQfile -out $TEMPfolder/combined${NUMERO}_comb.aln";
+        close(FH);
+        # attach sequence to alignment
+        # system "muscle -quiet -profile -in1 $ALN -in2 $SEQfile -out $TEMPfolder/combined${NUMERO}_comb.aln";
+        system "mafft --quiet --thread 20 --add $SEQfile --reorder $ALN > $TEMPfolder/combined${NUMERO}_comb.aln";
 }
 
 
@@ -81,6 +96,3 @@ system "ls $TEMPfolder/combined*.tree | parallel -j8 '~/Software/gotree matrix -
 
 # run R script to get closest
 system "Rscript $SCRIPTS/subScript.R $SCRIPTS $TEMPfolder";
-
-system "rm -r uscita";
-system "cp -r $TEMPfolder uscita";
