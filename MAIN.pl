@@ -61,6 +61,7 @@ if ($NRsegments != 8){
 
 # copy out alignments from script folder
 system "cp $SCRIPTS/RefSegment_*.aln $TEMPfolder/";
+system "ls $TEMPfolder/RefSegment_*.aln.gz | parallel 'gunzip {}'";
 
 # loop over segments (pull out from hash and find alignment
 #my @NRsegments = (1..8);
