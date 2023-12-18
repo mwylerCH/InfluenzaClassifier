@@ -39,10 +39,7 @@ while (my $line = <IN>){
         if ($header !~ m/\|[[:digit:]]\|/){
                 print "How are each segment defined? Not line '|number|'.\n\n";
                 exit;
-        } elsif ($header !~ m/witzerland/){
-                print "Make sure that the header contains 'Switzerland'.\n\n";
-                exit;
-        }
+        } 
     } else {
         $seqs{"$header"} .= $line;
     }
