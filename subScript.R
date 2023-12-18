@@ -1,4 +1,5 @@
-# script to identify closest reference from distance matrix (gotree)
+# subscript to identify closest reference from distance matrix (gotree)
+# Michele Wyler, IVI Mittelhäusern
 
 suppressMessages(suppressWarnings(require(data.table)))
 suppressMessages(suppressWarnings(require(tidyverse)))
@@ -21,7 +22,7 @@ colnames(output) <- c('ID', 'Subtipe', 'Genotype',
 
 # run through distance matrix files
 for (MatriceName in Files){
-  #MatriceName <- "//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita/combined1_comb.distMatrix"
+  # MatriceName <- "//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita/combined1_comb.distMatrix"
   Matrice <- fread(MatriceName, data.table = F, header = F)
   
   # keep only column of interest (sample)
@@ -36,7 +37,12 @@ for (MatriceName in Files){
   # get new sequence name (common name without segment information)
   dirtyName <- colnames(Matrice)[!grepl('Seq', colnames(Matrice))]
   dirtyName <- unlist(strsplit(dirtyName, '\\|'))
-  output$ID[1] <- dirtyName[grepl('witzerland', dirtyName)]
+  CleanName <- dirtyName[grepl('[⁠[:alnum:]]{4,}', dirtyName)]
+  if (length(CleanName) != 1){
+    output$ID[1] <- 'InputSample'
+  } else {
+    output$ID[1] <- CleanName
+  }
   
   # get Segment of the input
   segmenti <- c('PB2', 'PB1', 'PA', 'HA', 'NP', 'NA', 'MP', 'NS', 'MP')
