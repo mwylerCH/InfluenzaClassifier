@@ -17,7 +17,7 @@ Files <- list.files(path= FOLDER, pattern='.distMatrix', all.files=FALSE,
 
 # make table for output
 output <- as.data.frame(matrix(nrow = 1, ncol = 11))
-colnames(output) <- c('ID', 'Subtipe', 'Genotype', 
+colnames(output) <- c('ID', 'Subtype', 'Genotype', 
                       'PB2', 'PB1', 'PA', 'HA', 'NP', 'NA', 'MP', 'NS')
 
 # run through distance matrix files
