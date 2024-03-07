@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 ## Script for AIV classification of a fasta file with 8 segments
-# Michele Wyler, IVI Mittelhäusern
+# Michele Wyler, IVI Mittelhäusern, 7.3.2024
 
 
 use warnings;
@@ -83,6 +83,11 @@ foreach (@NRsegments){
         system "mafft --quiet --thread 20 --add $SEQfile --reorder $ALN > $TEMPfolder/combined${NUMERO}_comb.aln";
 }
 
+# slow version with famsa
+#foreach (@NRsegments){
+#	my $NUMERO = $_;
+#	system "./Software/famsa -dist_export -square_matrix $TEMPfolder/combined${NUMERO}_comb.aln $TEMPfolder/combined${NUMERO}.DistMatrix";
+#}
 
 # make a new tree
 system "ls $TEMPfolder/combined*_comb.aln | parallel -j8 'fasttree -quiet -nt {} > {.}.tree'  > /dev/null 2>&1 ";
@@ -94,3 +99,5 @@ system "ls $TEMPfolder/combined*.tree | parallel -j8 '~/Software/gotree matrix -
 
 # run R script to get closest
 system "Rscript $SCRIPTS/subScript.R $SCRIPTS $TEMPfolder";
+
+#system "cp -r $TEMPfolder/ FilesAIclass";
