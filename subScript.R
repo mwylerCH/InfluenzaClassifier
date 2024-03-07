@@ -1,5 +1,5 @@
 # subscript to identify closest reference from distance matrix (gotree)
-# Michele Wyler, IVI Mittelhäusern
+# Michele Wyler, IVI Mittelhäusern, Switzerland, 7.3.2024
 
 suppressMessages(suppressWarnings(require(data.table)))
 suppressMessages(suppressWarnings(require(tidyverse)))
@@ -88,4 +88,3 @@ if (nrow(refFilter) > 0){
   fwrite(output[,], sep = "\t")
   stop("ERROR: Could not Identify adeguate reference.", call. = F)
 }
-
