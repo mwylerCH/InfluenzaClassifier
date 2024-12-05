@@ -9,8 +9,8 @@ args <- commandArgs(TRUE)
 FOLDER <- args[2]
 folderScript <- args[1]
 
-# FOLDER <- '//wsl.localhost/Ubuntu-22.04/home/mwyler/uscita'
-#folderScript <- '//wsl.localhost/Ubuntu-22.04/home/mwyler/GenotapeClassifier/'
+#FOLDER <- '//wsl.localhost/Ubuntu-22.04/home/mwyler/MS_InfKp/FilesAIclassFinale/'
+#folderScript <- '//wsl.localhost/Ubuntu-22.04/home/mwyler/InfluenzaClassifier/'
 
 Files <- list.files(path= FOLDER, pattern='.distMatrix', all.files=FALSE, 
                     full.names=T)
@@ -45,10 +45,11 @@ for (MatriceName in Files){
   }
   
   # get Segment of the input
+  NrSegment <- basename(MatriceName)
+  NrSegment <- as.numeric(gsub('combined([[:digit:]])_comb.distMatrix', '\\1', NrSegment))
   segmenti <- c('PB2', 'PB1', 'PA', 'HA', 'NP', 'NA', 'MP', 'NS', 'MP')
-  Segment <- dirtyName[grepl(paste0('\\b', segmenti, '\\b', collapse = '|'), dirtyName)]
-  
-  
+  Segment <- segmenti[NrSegment]
+
   # get closest reference distance
   colnames(Matrice)[2] <- 'distance'
   closestRef <- Matrice[Matrice$distance > 0, ] %>% 
